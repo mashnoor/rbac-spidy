@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"github.com/kyokomi/emoji"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"math/big"
@@ -106,7 +106,7 @@ func crsToCrt(caPath string, csrBytes []byte) []byte {
 		Issuer:       caCRT.Subject,
 		Subject:      clientCSR.Subject,
 		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(24 * time.Hour),
+		NotAfter:     time.Now().Add(5000 * time.Hour),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
@@ -128,14 +128,9 @@ func crsToCrt(caPath string, csrBytes []byte) []byte {
 
 }
 
-func printWithEmoji(str string) {
-	msg := emoji.Sprint(str)
-	fmt.Println(msg)
-
-}
-
 func main() {
 	//certDir = /home/dfs/GolandProjects/rbac-spidy/certs
+	kingpin.New("RBAC Spidy", "'RBAC Spidy' is helper that automatically generates kubeconfig, role and rolebinding for a user.")
 	kubePkiDir := kingpin.Flag("pki-dir", "Kubernetes PKI directory location (/etc/kubernetes/pki/").Short('p').String()
 	configOutputDir := kingpin.Flag("out", "Kube config output directory location").Short('o').String()
 	bitSize := kingpin.Flag("bit", "Private cert bit size bit size").Short('b').Int()
@@ -150,15 +145,17 @@ func main() {
 
 	kingpin.Parse()
 
-	printWithEmoji(":smirk: Generating private key")
-
+	fmt.Println("- Generating private key...")
 	privateKey, privateKeyBytes := generatePrivateKey(*bitSize)
+	fmt.Println("- Private key generation successful!")
 
-	printWithEmoji(":tada: Private key generation successful")
-
+	fmt.Println("- Generating Certificate Signing Request...")
 	csrBytes := generateCsr(*userName, *organization, privateKey)
+	fmt.Println("- CSR generation successful")
 
+	fmt.Println("- Generating certificate")
 	clientCertBytes := crsToCrt(*kubePkiDir, csrBytes)
+	fmt.Println("- Certificate generation successful")
 
 	caCert, err := ioutil.ReadFile(*kubePkiDir + "/ca.crt")
 	if err != nil {
@@ -171,17 +168,12 @@ func main() {
 
 	kubeConfig := kubehelpers.GenerateKubeConfig(*clusterName, *userName, caCertStr, *serverString, *contextName, clientCertStr, privateKeyStr)
 
-	fmt.Println(*configOutputDir)
-
 	role := kubehelpers.GenerateRole(*seedNamespace, *roleName)
 	roleBinding := kubehelpers.GenerateRoleBinding(*seedNamespace, *roleBindingName, *userName, *roleName)
 
+	fmt.Println("- Writing files...")
 	writeConfigFiles(&kubeConfig, &role, &roleBinding, configOutputDir)
-
-	//fmt.Println("-------------------------------")
-	//fmt.Println(clientCertStr)
-	//fmt.Println("-------------------------------")
-	//fmt.Println(caCertStr)
+	fmt.Println("-Successfully generate all files. You can locate the files in: " + *configOutputDir)
 
 }
 

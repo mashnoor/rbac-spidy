@@ -6,7 +6,7 @@ func GenerateRole(namespace, roleName string) string {
 
 	role := fmt.Sprintf(`
 kind: Role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: %s
   name: %s
@@ -24,7 +24,7 @@ rules:
 func GenerateRoleBinding(namespace, roleBindingName, userName, roleName string) string {
 	roleBinding := fmt.Sprintf(`
 kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: %s
   namespace: %s

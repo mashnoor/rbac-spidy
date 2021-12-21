@@ -41,7 +41,7 @@ func GenerateKubeConfig(clusterName, userName, certificateAuthorityData, server,
 		Clusters:       []models.Cluster{cluster},
 		Contexts:       []models.Context{context},
 		CurrentContext: contextName,
-		Kind:           "config",
+		Kind:           "Config",
 		Users:          []models.User{user},
 	}
 
