@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-
 	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"math/big"
