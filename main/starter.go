@@ -144,6 +144,9 @@ func main() {
 	clusterName := kingpin.Flag("cluster", "Cluster name").Short('c').String()
 	serverString := kingpin.Flag("server", "Cluster endpoint address").Short('s').String()
 	contextName := kingpin.Flag("context", "User context name").Short('x').String()
+	seedNamespace := kingpin.Flag("seed-namespace", "Initial namespace").Short('n').String()
+	roleName := kingpin.Flag("role-name", "Role name").Short('r').String()
+	roleBindingName := kingpin.Flag("role-binding-name", "Role binding name").String()
 
 	kingpin.Parse()
 
@@ -169,11 +172,51 @@ func main() {
 	kubeConfig := kubehelpers.GenerateKubeConfig(*clusterName, *userName, caCertStr, *serverString, *contextName, clientCertStr, privateKeyStr)
 
 	fmt.Println(*configOutputDir)
-	f, _ := os.Create(*configOutputDir + "/config.yaml")
-	f.WriteString(kubeConfig)
+
+	role := kubehelpers.GenerateRole(*seedNamespace, *roleName)
+	roleBinding := kubehelpers.GenerateRoleBinding(*seedNamespace, *roleBindingName, *userName, *roleName)
+
+	writeConfigFiles(&kubeConfig, &role, &roleBinding, configOutputDir)
+
 	//fmt.Println("-------------------------------")
 	//fmt.Println(clientCertStr)
 	//fmt.Println("-------------------------------")
 	//fmt.Println(caCertStr)
 
+}
+
+func writeConfigFiles(kubeConfig, role, roleBinding, configOutputDir *string) {
+
+	// kubeconfig
+	f, _ := os.Create(*configOutputDir + "/config.yaml")
+	_, err := f.WriteString(*kubeConfig)
+	if err != nil {
+		panic(err)
+	}
+	err = f.Close()
+	if err != nil {
+		return
+	}
+
+	//role
+	f, _ = os.Create(*configOutputDir + "/role.yaml")
+	_, err = f.WriteString(*role)
+	if err != nil {
+		panic(err)
+	}
+	err = f.Close()
+	if err != nil {
+		return
+	}
+
+	//Role binding
+	f, _ = os.Create(*configOutputDir + "/rolebinding.yaml")
+	_, err = f.WriteString(*roleBinding)
+	if err != nil {
+		panic(err)
+	}
+	err = f.Close()
+	if err != nil {
+		return
+	}
 }

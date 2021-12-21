@@ -4,6 +4,6 @@ metadata:
   namespace: office
   name: deployment-manager
 rules:
-- apiGroups: ["", "extensions", "apps"]
-  resources: ["deployments", "replicasets", "pods"]
+- apiGroups: [""]
+  resources: ["deployments", "pods"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
