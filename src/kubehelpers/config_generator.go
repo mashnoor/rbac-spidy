@@ -2,7 +2,7 @@ package kubehelpers
 
 import (
 	"gopkg.in/yaml.v3"
-	"test/kubehelpers/models"
+	"test/src/kubehelpers/models"
 )
 
 func GenerateKubeConfig(clusterName, userName, certificateAuthorityData, server, contextName, clientCertData, clientKeyData string) string {

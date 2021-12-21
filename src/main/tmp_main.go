@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"test/kubehelpers/models"
+	"test/src/kubehelpers/models"
 )
 
 func main() {

@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
-	"test/kubehelpers"
+	kubehelpers2 "test/src/kubehelpers"
 	"time"
 )
 
@@ -165,10 +165,10 @@ func main() {
 	clientCertStr := base64.StdEncoding.EncodeToString(clientCertBytes)
 	privateKeyStr := base64.StdEncoding.EncodeToString(privateKeyBytes)
 
-	kubeConfig := kubehelpers.GenerateKubeConfig(*clusterName, *userName, caCertStr, *serverString, *contextName, clientCertStr, privateKeyStr)
+	kubeConfig := kubehelpers2.GenerateKubeConfig(*clusterName, *userName, caCertStr, *serverString, *contextName, clientCertStr, privateKeyStr)
 
-	role := kubehelpers.GenerateRole(*seedNamespace, *roleName)
-	roleBinding := kubehelpers.GenerateRoleBinding(*seedNamespace, *roleBindingName, *userName, *roleName)
+	role := kubehelpers2.GenerateRole(*seedNamespace, *roleName)
+	roleBinding := kubehelpers2.GenerateRoleBinding(*seedNamespace, *roleBindingName, *userName, *roleName)
 
 	fmt.Println("- Writing files...")
 	writeConfigFiles(&kubeConfig, &role, &roleBinding, configOutputDir)
