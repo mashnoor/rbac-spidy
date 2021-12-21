@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"path/filepath"
 	kubehelpers2 "test/src/kubehelpers"
 	"time"
 )
@@ -127,20 +128,28 @@ func crsToCrt(caPath string, csrBytes []byte) []byte {
 
 }
 
+func getCurrentDir() string {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	return exPath
+}
+
 func main() {
-	//certDir = /home/dfs/GolandProjects/rbac-spidy/certs
 	kingpin.New("RBAC Spidy", "'RBAC Spidy' is helper that automatically generates kubeconfig, role and rolebinding for a user.")
-	kubePkiDir := kingpin.Flag("pki-dir", "Kubernetes PKI directory location (/etc/kubernetes/pki/").Short('p').String()
-	configOutputDir := kingpin.Flag("out", "Kube config output directory location").Short('o').String()
-	bitSize := kingpin.Flag("bit", "Private cert bit size bit size").Short('b').Int()
-	organization := kingpin.Flag("org", "Certificate organization name").String()
-	userName := kingpin.Flag("user", "Certificate user name").Short('u').String()
-	clusterName := kingpin.Flag("cluster", "Cluster name").Short('c').String()
-	serverString := kingpin.Flag("server", "Cluster endpoint address").Short('s').String()
-	contextName := kingpin.Flag("context", "User context name").Short('x').String()
-	seedNamespace := kingpin.Flag("seed-namespace", "Initial namespace").Short('n').String()
-	roleName := kingpin.Flag("role-name", "Role name").Short('r').String()
-	roleBindingName := kingpin.Flag("role-binding-name", "Role binding name").String()
+	kubePkiDir := kingpin.Flag("pki-dir", "Kubernetes PKI directory location (/etc/kubernetes/pki)").Default("/etc/kubernetes/pki").Short('p').String()
+	configOutputDir := kingpin.Flag("out", "Kube config output directory location").Default(getCurrentDir()).Short('o').String()
+	bitSize := kingpin.Flag("bit", "Private cert bit size bit size").Short('b').Default("2048").Int()
+	organization := kingpin.Flag("org", "Certificate organization name").Default("spidy").String()
+	userName := kingpin.Flag("user", "Certificate user name").Short('u').Required().String()
+	clusterName := kingpin.Flag("cluster", "Cluster name").Default("spidy").Short('c').String()
+	serverString := kingpin.Flag("server", "Cluster endpoint address (https://<master-ip-address>:6443").Required().Short('s').String()
+	contextName := kingpin.Flag("context", "User context name").Short('x').Default("spidy-context").String()
+	seedNamespace := kingpin.Flag("seed-namespace", "Initial namespace").Default("default").Short('n').String()
+	roleName := kingpin.Flag("role-name", "Role name").Short('r').Default("spidy-role").String()
+	roleBindingName := kingpin.Flag("role-binding-name", "Role binding name").Default("spidy-role-binding").String()
 
 	kingpin.Parse()
 
@@ -177,6 +186,10 @@ func main() {
 }
 
 func writeConfigFiles(kubeConfig, role, roleBinding, configOutputDir *string) {
+
+	if _, err := os.Stat(*configOutputDir); os.IsNotExist(err) {
+		err = os.Mkdir(*configOutputDir, 0777)
+	}
 
 	// kubeconfig
 	f, _ := os.Create(*configOutputDir + "/config.yaml")
